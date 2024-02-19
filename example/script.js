@@ -389,7 +389,6 @@ canva.width = "480";
 canva.height = "360";
 let InfinityGraphics = new InfinityGL(canva);
 let count = 0;
-console.log(test.hsva(count * 360,100,100,1));
 function drawingProcess() {
   InfinityGraphics.start();
   count += InfinityGraphics.Dt;
@@ -399,7 +398,7 @@ function drawingProcess() {
     100,
     100,
     100,
-    (fill = test.hsva(count * 360,100,100,1))
+    (fill = InfinityGraphics.hsva(count * 360,100,100,1))
   );
   InfinityGraphics.end();
 }
