@@ -253,50 +253,76 @@ class InfinityGL {
     let pos = this.convertPos(x, y);
     width = this.convertLength(width);
     height = this.convertLength(height);
-    this.graphics.drawImage(image, pos.x - width / 2, pos.y - height / 2, width, height);
+    this.graphics.drawImage(
+      image,
+      pos.x - width / 2,
+      pos.y - height / 2,
+      width,
+      height
+    );
   }
   drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-    let spos = this.convertPos(sx, sy);
-    sWidth = this.convertLength(sWidth);
-    sHeight = this.convertLength(sHeight);
-    spos.x-=sWidth/2;
-    spos.y-=sHeight/2;
+    
+    if (image.tagName == "IMG") {
+      sx += image.naturalWidth / 2;
+      sy = image.naturalHeight / 2 - sy;
+    }else if (image.tagName == "CANVAS") {
+      sx += image.width / 2;
+      sy = image.height / 2 - sy;
+    }
+    
     let dpos = this.convertPos(dx, dy);
     dWidth = this.convertLength(dWidth);
     dHeight = this.convertLength(dHeight);
-    dpos.x-=dWidth/2;
-    dpos.y-=dHeight/2;
-    this.graphics.drawimage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+    dpos.x -= dWidth / 2;
+    dpos.y -= dHeight / 2;
+    this.graphics.drawImage(
+      image,
+      sx,
+      sy,
+      sWidth,
+      sHeight,
+      dpos.x,
+      dpos.y,
+      dWidth,
+      dHeight
+    );
   }
 }
 ///////////////////////////
 
 function makeRandomColor() {
-    base16 = "0123456789abcdef";
-    result = "#";
-    for (let i = 0; i < 6; ++i) {
-      result += base16.substr(Math.floor(Math.random() * 16), 1);
-    }
-    return result;
+  base16 = "0123456789abcdef";
+  result = "#";
+  for (let i = 0; i < 6; ++i) {
+    result += base16.substr(Math.floor(Math.random() * 16), 1);
   }
-  
-  const canva = document.getElementById("screen");
-  canva.width = "480";
-  canva.height = "360";
-  let InfinityGraphics = new InfinityGL(canva);
-  let count = 0;
-  function drawingProcess() {
-    InfinityGraphics.start();
-    count += InfinityGraphics.Dt;
-    InfinityGraphics.image(InfinityGraphics.canvas,0,0,100,100);
-    count %= 1;
-    InfinityGraphics.rect(Math.sin(2*Math.PI*count)*100,100,100,100,fill="red");
-    InfinityGraphics.end();
-  }
-  InfinityGraphics.setDrawingProcess(drawingProcess);
-  
-  setInterval(function () {
-    document.querySelector("h2").innerHTML = count;
-    document.querySelector("h1").innerHTML =
-      Math.floor(InfinityGraphics.FPS * 10) / 10;
-  }, 10);
+  return result;
+}
+
+const canva = document.getElementById("screen");
+canva.width = "480";
+canva.height = "360";
+let InfinityGraphics = new InfinityGL(canva);
+let count = 0;
+function drawingProcess() {
+  InfinityGraphics.start();
+  count += InfinityGraphics.Dt;
+  InfinityGraphics.drawImage(InfinityGraphics.canvas, 0, 0, 400, 100,0,0,100,100);
+  count %= 1;
+  InfinityGraphics.rect(
+    Math.sin(2 * Math.PI * count) * 100 + 200,
+    100,
+    100,
+    100,
+    (fill = "red")
+  );
+  InfinityGraphics.end();
+}
+InfinityGraphics.setDrawingProcess(drawingProcess);
+
+setInterval(function () {
+  document.querySelector("h2").innerHTML = count;
+  document.querySelector("h1").innerHTML =
+    Math.floor(InfinityGraphics.FPS * 10) / 10;
+}, 10);
