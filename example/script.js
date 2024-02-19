@@ -82,6 +82,90 @@ class InfinityGL {
       y: (Math.random() - 0.5) * this.canvas.height,
     };
   }
+  //明度、彩度は0以上100以下の数値で指定すること。
+  hsva(hue, saturation, value, alpha) {
+    var result = false;
+    if (
+      (saturation || saturation === 0) &&
+      saturation <= 100 &&
+      (value || value === 0) &&
+      value <= 100 &&
+      (alpha || alpha === 0) &&
+      alpha <= 1
+    ) {
+      var red = 0,
+        green = 0,
+        blue = 0,
+        i = 0,
+        f = 0,
+        q = 0,
+        p = 0,
+        t = 0;
+      hue = Number(hue % 360) / 60;
+      saturation = Number(saturation) / 100;
+      value = Number(value) / 100;
+      if (saturation === 0) {
+        red = value;
+        green = value;
+        blue = value;
+      } else {
+        i = Math.floor(hue);
+        f = hue - i;
+        p = value * (1 - saturation);
+        q = value * (1 - saturation * f);
+        t = value * (1 - saturation * (1 - f));
+        switch (i) {
+          case 0:
+            red = value;
+            green = t;
+            blue = p;
+            break;
+          case 1:
+            red = q;
+            green = value;
+            blue = p;
+            break;
+          case 2:
+            red = p;
+            green = value;
+            blue = t;
+            break;
+          case 3:
+            red = p;
+            green = q;
+            blue = value;
+            break;
+          case 4:
+            red = t;
+            green = p;
+            blue = value;
+            break;
+          case 5:
+            red = value;
+            green = p;
+            blue = q;
+            break;
+        }
+      }
+      result = {
+        red: Math.round(red * 255).toString(),
+        green: Math.round(green * 255).toString(),
+        blue: Math.round(blue * 255).toString(),
+        alpha: alpha.toString(),
+      };
+    }
+    return (
+      "rgba(" +
+      result.red +
+      "," +
+      result.green +
+      "," +
+      result.blue +
+      "," +
+      result.alpha +
+      ")"
+    );
+  }
   //パスを用いた描画集
   beginPath() {
     this.graphics.beginPath();
@@ -192,24 +276,25 @@ class InfinityGL {
     this.graphics.stroke();
     this.graphics.closePath();
   }
-  //ポリゴン(n角形)の描画
+  //ポリゴン(3角形)の描画
   polygon(
-    path = [
-      { x: 0, y: 0 },
-      { x: 0, y: 0 },
-      { x: 0, y: 0 },
-    ],
+    x1,
+    y1,
+    x2,
+    y2,
+    x3,
+    y3,
     fill = null,
     stroke = { color: null, width: null }
   ) {
-    if (
-      path.length >= 3 &&
-      !(fill == null && stroke == { color: null, width: null })
-    ) {
+    if (!(fill == null && stroke == { color: null, width: null })) {
       this.graphics.beginPath();
-      for (let i = 0; i < path.length; ++i) {
-        let pos = this.convertPos(path[i].x, path[i].y);
-        this.graphics.lineTo(pos.x, pos.y);
+      let pos = [];
+      pos.append(this.convertPos(x1, y1));
+      pos.append(this.convertPos(x2, y2));
+      pos.append(this.convertPos(x3, y3));
+      for (let i = 0; i < e; ++i) {
+        this.graphics.lineTo(pos[i].x, pos[i].y);
       }
       if (fill != null) {
         this.graphics.fillStyle = fill;
@@ -262,15 +347,14 @@ class InfinityGL {
     );
   }
   drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-    
     if (image.tagName == "IMG") {
       sx += image.naturalWidth / 2;
       sy = image.naturalHeight / 2 - sy;
-    }else if (image.tagName == "CANVAS") {
+    } else if (image.tagName == "CANVAS") {
       sx += image.width / 2;
       sy = image.height / 2 - sy;
     }
-    
+
     let dpos = this.convertPos(dx, dy);
     dWidth = this.convertLength(dWidth);
     dHeight = this.convertLength(dHeight);
@@ -305,17 +389,17 @@ canva.width = "480";
 canva.height = "360";
 let InfinityGraphics = new InfinityGL(canva);
 let count = 0;
+console.log(test.hsva(count * 360,100,100,1));
 function drawingProcess() {
   InfinityGraphics.start();
   count += InfinityGraphics.Dt;
-  InfinityGraphics.drawImage(InfinityGraphics.canvas, 0, 0, 400, 100,0,0,100,100);
   count %= 1;
   InfinityGraphics.rect(
     Math.sin(2 * Math.PI * count) * 100 + 200,
     100,
     100,
     100,
-    (fill = "red")
+    (fill = test.hsva(count * 360,100,100,1))
   );
   InfinityGraphics.end();
 }
