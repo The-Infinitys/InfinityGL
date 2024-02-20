@@ -6,8 +6,8 @@ class InfinityGL {
       this.canvas = canvas; //canvasオブジェクト。横幅等の取得に使用する。
       this.buffer = new OffscreenCanvas(this.canvas.width, this.canvas.height);
       this.graphics = this.buffer.getContext("2d"); //描画コンテクスト。描画に使用する。
-      this.chromaCanvas = new OffscreenCanvas(300, 100);//chroma key用のcanvas
-      this.chromaGraphics = this.chromaCanvas.getContext("2d");//chroma key 用の描画機構。高速化の為、座標変換をせずにdirectにする。
+      this.chromaCanvas = new OffscreenCanvas(300, 100); //chroma key用のcanvas
+      this.chromaGraphics = this.chromaCanvas.getContext("2d"); //chroma key 用の描画機構。高速化の為、座標変換をせずにdirectにする。
       this.aspect_ratio = canvas.width / canvas.height; //アスペクト比は、横幅÷縦幅で表す。
       this.FrameRate = FrameRate; //この値は最高のFPSを指定する。24はアニメ等に向いており、30はバランスが取れている。60はゲーム向き。(規定値でないと、setIntervalを使い出す)
       this.FPS = Infinity; //FPSを入れておく
@@ -87,44 +87,44 @@ class InfinityGL {
   getColorDistance(rgb1, rgb2) {
     // 三次元空間の距離が返る
     return Math.sqrt(
-        Math.pow((rgb1.r - rgb2.r), 2) +
-        Math.pow((rgb1.g - rgb2.g), 2) +
-        Math.pow((rgb1.b - rgb2.b), 2)
+      Math.pow(rgb1.r - rgb2.r, 2) +
+        Math.pow(rgb1.g - rgb2.g, 2) +
+        Math.pow(rgb1.b - rgb2.b, 2)
     );
-};
-  rgb2hsv( r,g,b ) {
-    r = r / 255 ;
-    g = g / 255 ;
-    b = b / 255 ;
-  
-    let max = Math.max( r, g, b ) ;
-    let min = Math.min( r, g, b ) ;
-    let diff = max - min ;
-  
-    let h = 0 ;
-  
-    switch( min ) {
-      case max :
-        h = 0 ;
-      break ;
-  
-      case r :
-        h = (60 * ((b - g) / diff)) + 180 ;
-      break ;
-  
-      case g :
-        h = (60 * ((r - b) / diff)) + 300 ;
-      break ;
-  
-      case b :
-        h = (60 * ((g - r) / diff)) + 60 ;
-      break ;
+  }
+  rgb2hsv(r, g, b) {
+    r = r / 255;
+    g = g / 255;
+    b = b / 255;
+
+    let max = Math.max(r, g, b);
+    let min = Math.min(r, g, b);
+    let diff = max - min;
+
+    let h = 0;
+
+    switch (min) {
+      case max:
+        h = 0;
+        break;
+
+      case r:
+        h = 60 * ((b - g) / diff) + 180;
+        break;
+
+      case g:
+        h = 60 * ((r - b) / diff) + 300;
+        break;
+
+      case b:
+        h = 60 * ((g - r) / diff) + 60;
+        break;
     }
-  
-    let s = max == 0 ? 0 : diff / max ;
-    let v = max ;
-  
-    return [ h, s, v ] ;
+
+    let s = max == 0 ? 0 : diff / max;
+    let v = max;
+
+    return [h, s, v];
   }
   //明度、彩度は0以上100以下の数値で指定すること。
   hsva(hue, saturation, value, alpha) {
@@ -415,24 +415,41 @@ class InfinityGL {
       dHeight
     );
   }
-  chromaKey(image, color, chromaLevel=40,quality=1) {
-    if (image.tagName=="CANVAS") {
-      this.chromaCanvas.width = image.width*quality;
-      this.chromaCanvas.height = image.height*quality;
-    }else{
-    this.chromaCanvas.width = image.naturalWidth*quality;
-    this.chromaCanvas.height = image.naturalHeight*quality;
+  chromaKey(image, color, chromaLevel = 40, quality = 1) {
+    if (image.tagName == "CANVAS") {
+      this.chromaCanvas.width = image.width * quality;
+      this.chromaCanvas.height = image.height * quality;
+    } else {
+      this.chromaCanvas.width = image.naturalWidth * quality;
+      this.chromaCanvas.height = image.naturalHeight * quality;
     }
-    this.chromaGraphics.drawImage(image,0,0,this.canvas.width,this.chromaCanvas.height);
-    this.chromaGraphics.fillStyle="#fff";
-    this.chromaGraphics.fillRect(0,0,100,100);
-    //const frame = this.chromaGraphics.getImageData(0,0,this.chromaCanvas.width,this.chromaCanvas.height);
-    //console.log(frame);
-    for (let i = 0; i < data.length; i += 4) {
-      //const rgb = {r:frame.data[i],g:frame.data[i+1],b:frame.data[i+2]};
-      //this.getColorDistance(rgb,color);
+    this.chromaGraphics.drawImage(
+      image,
+      0,
+      0,
+      this.canvas.width,
+      this.chromaCanvas.height
+    );
+    this.chromaGraphics.fillStyle = "#fff";
+    this.chromaGraphics.fillRect(0, 0, 100, 100);
+    const frame = this.chromaGraphics.getImageData(
+      0,
+      0,
+      this.chromaCanvas.width,
+      this.chromaCanvas.height
+    );
+    console.log(frame);
+    for (let i = 0; i < frame.data.length; i += 4) {
+      const rgb = {
+        r: frame.data[i],
+        g: frame.data[i + 1],
+        b: frame.data[i + 2],
+      };
+      if (this.getColorDistance(rgb, color) <= chromaLevel) {
+        frame.data[i + 3] = 0;
+      }
     }
-    this.chromaGraphics.putImageData(frame,0,0);
+    this.chromaGraphics.putImageData(frame, 0, 0);
     return this.chromaCanvas;
   }
 }
@@ -448,29 +465,24 @@ function makeRandomColor() {
 }
 
 const canva = document.getElementById("screen");
-canva.width = "480";
-canva.height = "360";
-let InfinityGraphics = new InfinityGL(canva,FrameRate=100);
+canva.width = "48";
+canva.height = "36";
+let InfinityGraphics = new InfinityGL(canva, (FrameRate = 100));
 let count = 0;
 function drawingProcess() {
   InfinityGraphics.start();
+  console.log(InfinityGraphics.FPS);
   count += InfinityGraphics.Dt;
-  InfinityGraphics.rect(
-    0,
-    0,
-    100,
-    100,
-    fill="red"
-  );
-  InfinityGraphics.rect(
-    -100,
-    0,
-    100,
-    100,
-    fill="green"
-  );
+  InfinityGraphics.rect(0, 0, 100, 100, (fill = "red"));
+  InfinityGraphics.rect(-100, 0, 100, 100, (fill = "green"));
   //console.log(InfinityGraphics.chromaKey(InfinityGraphics.canvas,{r:0,g:255,b:0}));
-  InfinityGraphics.image(InfinityGraphics.chromaKey(InfinityGraphics.canvas,{r:0,g:255,b:0}),0,0,canva.width,canva.height);
+  InfinityGraphics.image(
+    InfinityGraphics.chromaKey(InfinityGraphics.canvas, { r: 0, g: 255, b: 0 }),
+    0,
+    0,
+    canva.width,
+    canva.height
+  );
   InfinityGraphics.end();
 }
-drawingProcess();
+InfinityGraphics.setDrawingProcess(drawingProcess);
