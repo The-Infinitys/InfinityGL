@@ -444,8 +444,10 @@ class InfinityGL {
         g: frame.data[i + 1],
         b: frame.data[i + 2],
       };
+      frame.data[i+2]=255;
       if (this.getColorDistance(rgb, color) <= chromaLevel) {
         frame.data[i + 3] = 0;
+        console.log(this.getColorDistance(rgb, color));
       }
     }
     this.chromaGraphics.putImageData(frame, 0, 0);
@@ -464,17 +466,16 @@ function makeRandomColor() {
 }
 
 const canva = document.getElementById("screen");
-canva.width = "48";
-canva.height = "36";
+canva.width = "480";
+canva.height = "360";
 let InfinityGraphics = new InfinityGL(canva);
 let count = 0;
 function drawingProcess() {
   InfinityGraphics.start();
-  console.log(InfinityGraphics.FPS);
+  document.querySelector("h1").innerHTML = InfinityGraphics.FPS;
   count += InfinityGraphics.Dt;
   InfinityGraphics.rect(0, 0, 100, 100, (fill = "red"));
   InfinityGraphics.rect(-100, 0, 100, 100, (fill = "green"));
-  //console.log(InfinityGraphics.chromaKey(InfinityGraphics.canvas,{r:0,g:255,b:0}));
   InfinityGraphics.image(
     InfinityGraphics.chromaKey(InfinityGraphics.canvas, { r: 0, g: 255, b: 0 }),
     0,
