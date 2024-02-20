@@ -20,6 +20,7 @@ class InfinityGL {
     }
   }
   start() {
+    this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.graphics.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.Dt = (Date.now() - this.lastDrawed) / 1000;
     this.FPS = 1 / this.Dt;
@@ -415,7 +416,7 @@ class InfinityGL {
       dHeight
     );
   }
-  chromaKey(image, color, chromaLevel = 40, quality = 1) {
+  chromaKey(image, color, chromaLevel = 0, quality = 1) {
     if (image.tagName == "CANVAS") {
       this.chromaCanvas.width = image.width * quality;
       this.chromaCanvas.height = image.height * quality;
@@ -430,8 +431,6 @@ class InfinityGL {
       this.canvas.width,
       this.chromaCanvas.height
     );
-    this.chromaGraphics.fillStyle = "#fff";
-    this.chromaGraphics.fillRect(0, 0, 100, 100);
     const frame = this.chromaGraphics.getImageData(
       0,
       0,
@@ -444,12 +443,13 @@ class InfinityGL {
         g: frame.data[i + 1],
         b: frame.data[i + 2],
       };
-      frame.data[i+2]=255;
-      if (this.getColorDistance(rgb, color) <= chromaLevel) {
-        frame.data[i + 3] = 0;
-        console.log(this.getColorDistance(rgb, color));
+      if (this.getColorDistance(rgb, color) >= chromaLevel) {
+        frame.data[i + 1] = 0;
+      }else{
+        frame.data[i + 2] = 255;
       }
     }
+    this.chromaGraphics.clearRect(0,0,this.chromaCanvas.width,this.chromaCanvas.height);
     this.chromaGraphics.putImageData(frame, 0, 0);
     return this.chromaCanvas;
   }
@@ -464,18 +464,23 @@ function makeRandomColor() {
   }
   return result;
 }
+function rgb(r,g,b){
+  return {r:r,g:g,b:b};
+}
 
 const canva = document.getElementById("screen");
 canva.width = "480";
 canva.height = "360";
 let InfinityGraphics = new InfinityGL(canva);
 let count = 0;
+console.log(InfinityGraphics.getColorDistance(rgb(0,0,0),rgb(255,255,255)));
 function drawingProcess() {
   InfinityGraphics.start();
   document.querySelector("h1").innerHTML = InfinityGraphics.FPS;
   count += InfinityGraphics.Dt;
-  InfinityGraphics.rect(0, 0, 100, 100, (fill = "red"));
-  InfinityGraphics.rect(-100, 0, 100, 100, (fill = "green"));
+  count%=1;
+  InfinityGraphics.rect(100*count, 0, 100, 100, (fill = "red"));
+  InfinityGraphics.rect(-100, 0, 100, 100, (fill = "#0f0"));
   InfinityGraphics.image(
     InfinityGraphics.chromaKey(InfinityGraphics.canvas, { r: 0, g: 255, b: 0 }),
     0,
