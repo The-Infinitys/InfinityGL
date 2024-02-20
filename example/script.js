@@ -438,7 +438,6 @@ class InfinityGL {
       this.chromaCanvas.width,
       this.chromaCanvas.height
     );
-    console.log(frame);
     for (let i = 0; i < frame.data.length; i += 4) {
       const rgb = {
         r: frame.data[i],
@@ -467,7 +466,7 @@ function makeRandomColor() {
 const canva = document.getElementById("screen");
 canva.width = "48";
 canva.height = "36";
-let InfinityGraphics = new InfinityGL(canva, (FrameRate = 100));
+let InfinityGraphics = new InfinityGL(canva);
 let count = 0;
 function drawingProcess() {
   InfinityGraphics.start();
