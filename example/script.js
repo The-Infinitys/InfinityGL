@@ -7,7 +7,7 @@ class InfinityGL {
       this.buffer = new OffscreenCanvas(this.canvas.width, this.canvas.height);
       this.graphics = this.buffer.getContext("2d"); //描画コンテクスト。描画に使用する。
       this.chromaCanvas = new OffscreenCanvas(300, 100);//chroma key用のcanvas
-      this.chromaGraphics = this.chromaCanvas.getContext("2d")//chroma key 用の描画機構。高速化の為、座標変換をせずにdirectにする。
+      this.chromaGraphics = this.chromaCanvas.getContext("2d");//chroma key 用の描画機構。高速化の為、座標変換をせずにdirectにする。
       this.aspect_ratio = canvas.width / canvas.height; //アスペクト比は、横幅÷縦幅で表す。
       this.FrameRate = FrameRate; //この値は最高のFPSを指定する。24はアニメ等に向いており、30はバランスが取れている。60はゲーム向き。(規定値でないと、setIntervalを使い出す)
       this.FPS = Infinity; //FPSを入れておく
@@ -416,41 +416,24 @@ class InfinityGL {
     );
   }
   chromaKey(image, color, chromaLevel=40,quality=1) {
-    /*
-    processor.computeFrame = function () {
-      this.ctx1.drawImage(this.video, 0, 0, this.width, this.height);
-      const frame = this.ctx1.getImageData(0, 0, this.width, this.height);
-      const data = frame.data;
-    
-      for (let i = 0; i < data.length; i += 4) {
-        const red = data[i + 0];
-        const green = data[i + 1];
-        const blue = data[i + 2];
-        if (green > 100 && red > 100 && blue < 43) {
-          data[i + 3] = 0;
-        }
-      }
-      this.ctx2.putImageData(frame, 0, 0);
-    };
-    */
-    this.chromaCanvas.width = image.naturalWidth*quality;
-    this.chromaCanvas.height = image.naturalHeight*quality;
-    if (image.naturalWidth == 0 || image.naturalHeight == 0) {
+    if (image.tagName=="CANVAS") {
       this.chromaCanvas.width = image.width*quality;
       this.chromaCanvas.height = image.height*quality;
+    }else{
+    this.chromaCanvas.width = image.naturalWidth*quality;
+    this.chromaCanvas.height = image.naturalHeight*quality;
     }
-    this.chromaGraphics.drawImage(image,0,0,this.chromaCanvas.width,this.chromaCanvas.height);
-    const frame = this.chromaGraphics.getImageData(0, 0, this.chromaCanvas.width, this.chromaCanvas.height);
-    const data = frame.data;
-    //ここから描くこと！！！！！！！！
+    this.chromaGraphics.drawImage(image,0,0,this.canvas.width,this.chromaCanvas.height);
+    this.chromaGraphics.fillStyle="#fff";
+    this.chromaGraphics.fillRect(0,0,100,100);
+    //const frame = this.chromaGraphics.getImageData(0,0,this.chromaCanvas.width,this.chromaCanvas.height);
+    //console.log(frame);
     for (let i = 0; i < data.length; i += 4) {
-      const red = data[i + 0];
-      const green = data[i + 1];
-      const blue = data[i + 2];
-      if (this.getColorDistance(color,{r:red,g:green,b:blue}<=chromaLevel)) {
-        data[i + 3] = 0;
-      }
+      //const rgb = {r:frame.data[i],g:frame.data[i+1],b:frame.data[i+2]};
+      //this.getColorDistance(rgb,color);
     }
+    this.chromaGraphics.putImageData(frame,0,0);
+    return this.chromaCanvas;
   }
 }
 ///////////////////////////
@@ -468,25 +451,26 @@ const canva = document.getElementById("screen");
 canva.width = "480";
 canva.height = "360";
 let InfinityGraphics = new InfinityGL(canva,FrameRate=100);
-console.log(InfinityGraphics.getColorDistance({r:255,g:255,b:255},{r:0,g:0,b:0}));
 let count = 0;
 function drawingProcess() {
   InfinityGraphics.start();
   count += InfinityGraphics.Dt;
-  count %= 1;
   InfinityGraphics.rect(
-    Math.sin(2 * Math.PI * count) * 100 + 200,
+    0,
+    0,
     100,
     100,
-    100,
-    (fill = InfinityGraphics.hsva(count * 360, 100, 100, 1))
+    fill="red"
   );
+  InfinityGraphics.rect(
+    -100,
+    0,
+    100,
+    100,
+    fill="green"
+  );
+  //console.log(InfinityGraphics.chromaKey(InfinityGraphics.canvas,{r:0,g:255,b:0}));
+  InfinityGraphics.image(InfinityGraphics.chromaKey(InfinityGraphics.canvas,{r:0,g:255,b:0}),0,0,canva.width,canva.height);
   InfinityGraphics.end();
 }
-InfinityGraphics.setDrawingProcess(drawingProcess);
-
-setInterval(function () {
-  document.querySelector("h2").innerHTML = count;
-  document.querySelector("h1").innerHTML =
-    "FPS:" + (Math.floor(InfinityGraphics.FPS * 10) / 10).toString();
-}, 10);
+drawingProcess();
