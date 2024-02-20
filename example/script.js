@@ -84,9 +84,51 @@ class InfinityGL {
       y: (Math.random() - 0.5) * this.canvas.height,
     };
   }
+  getColorDistance(rgb1, rgb2) {
+    // 三次元空間の距離が返る
+    return Math.sqrt(
+        Math.pow((rgb1.r - rgb2.r), 2) +
+        Math.pow((rgb1.g - rgb2.g), 2) +
+        Math.pow((rgb1.b - rgb2.b), 2)
+    );
+};
+  rgb2hsv( r,g,b ) {
+    r = r / 255 ;
+    g = g / 255 ;
+    b = b / 255 ;
+  
+    let max = Math.max( r, g, b ) ;
+    let min = Math.min( r, g, b ) ;
+    let diff = max - min ;
+  
+    let h = 0 ;
+  
+    switch( min ) {
+      case max :
+        h = 0 ;
+      break ;
+  
+      case r :
+        h = (60 * ((b - g) / diff)) + 180 ;
+      break ;
+  
+      case g :
+        h = (60 * ((r - b) / diff)) + 300 ;
+      break ;
+  
+      case b :
+        h = (60 * ((g - r) / diff)) + 60 ;
+      break ;
+    }
+  
+    let s = max == 0 ? 0 : diff / max ;
+    let v = max ;
+  
+    return [ h, s, v ] ;
+  }
   //明度、彩度は0以上100以下の数値で指定すること。
   hsva(hue, saturation, value, alpha) {
-    var result = false;
+    let result = false;
     if (
       (saturation || saturation === 0) &&
       saturation <= 100 &&
@@ -95,7 +137,7 @@ class InfinityGL {
       (alpha || alpha === 0) &&
       alpha <= 1
     ) {
-      var red = 0,
+      let red = 0,
         green = 0,
         blue = 0,
         i = 0,
@@ -373,7 +415,7 @@ class InfinityGL {
       dHeight
     );
   }
-  chromaKey(image, color, quality=1) {
+  chromaKey(image, color, chromaLevel=40,quality=1) {
     /*
     processor.computeFrame = function () {
       this.ctx1.drawImage(this.video, 0, 0, this.width, this.height);
@@ -401,6 +443,14 @@ class InfinityGL {
     const frame = this.chromaGraphics.getImageData(0, 0, this.chromaCanvas.width, this.chromaCanvas.height);
     const data = frame.data;
     //ここから描くこと！！！！！！！！
+    for (let i = 0; i < data.length; i += 4) {
+      const red = data[i + 0];
+      const green = data[i + 1];
+      const blue = data[i + 2];
+      if (this.getColorDistance(color,{r:red,g:green,b:blue}<=chromaLevel)) {
+        data[i + 3] = 0;
+      }
+    }
   }
 }
 ///////////////////////////
@@ -417,7 +467,8 @@ function makeRandomColor() {
 const canva = document.getElementById("screen");
 canva.width = "480";
 canva.height = "360";
-let InfinityGraphics = new InfinityGL(canva);
+let InfinityGraphics = new InfinityGL(canva,FrameRate=100);
+console.log(InfinityGraphics.getColorDistance({r:255,g:255,b:255},{r:0,g:0,b:0}));
 let count = 0;
 function drawingProcess() {
   InfinityGraphics.start();

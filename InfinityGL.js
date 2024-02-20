@@ -82,7 +82,7 @@ class InfinityGL {
   }
   //明度、彩度は0以上100以下の数値で指定すること。
   hsva(hue, saturation, value, alpha) {
-    var result = false;
+    let result = false;
     if (
       (saturation || saturation === 0) &&
       saturation <= 100 &&
@@ -91,7 +91,7 @@ class InfinityGL {
       (alpha || alpha === 0) &&
       alpha <= 1
     ) {
-      var red = 0,
+      let red = 0,
         green = 0,
         blue = 0,
         i = 0,
