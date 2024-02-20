@@ -398,7 +398,7 @@ function drawingProcess() {
     100,
     100,
     100,
-    (fill = InfinityGraphics.hsva(count * 360,100,100,1))
+    (fill = InfinityGraphics.hsva(count * 360, 100, 100, 1))
   );
   InfinityGraphics.end();
 }
@@ -407,5 +407,5 @@ InfinityGraphics.setDrawingProcess(drawingProcess);
 setInterval(function () {
   document.querySelector("h2").innerHTML = count;
   document.querySelector("h1").innerHTML =
-    Math.floor(InfinityGraphics.FPS * 10) / 10;
+    "FPS:" + (Math.floor(InfinityGraphics.FPS * 10) / 10).toString();
 }, 10);
