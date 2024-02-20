@@ -6,6 +6,8 @@ class InfinityGL {
       this.canvas = canvas; //canvasオブジェクト。横幅等の取得に使用する。
       this.buffer = new OffscreenCanvas(this.canvas.width, this.canvas.height);
       this.graphics = this.buffer.getContext("2d"); //描画コンテクスト。描画に使用する。
+      this.chromaCanvas = new OffscreenCanvas(300, 100);//chroma key用のcanvas
+      this.chromaGraphics = this.chromaCanvas.getContext("2d")//chroma key 用の描画機構。高速化の為、座標変換をせずにdirectにする。
       this.aspect_ratio = canvas.width / canvas.height; //アスペクト比は、横幅÷縦幅で表す。
       this.FrameRate = FrameRate; //この値は最高のFPSを指定する。24はアニメ等に向いており、30はバランスが取れている。60はゲーム向き。(規定値でないと、setIntervalを使い出す)
       this.FPS = Infinity; //FPSを入れておく
@@ -347,10 +349,9 @@ class InfinityGL {
     );
   }
   drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-    if (image.tagName == "IMG") {
-      sx += image.naturalWidth / 2;
-      sy = image.naturalHeight / 2 - sy;
-    } else if (image.tagName == "CANVAS") {
+    sx += image.naturalWidth / 2;
+    sy = image.naturalHeight / 2 - sy;
+    if (image.naturalWidth == 0 || image.naturalHeight == 0) {
       sx += image.width / 2;
       sy = image.height / 2 - sy;
     }
@@ -371,6 +372,35 @@ class InfinityGL {
       dWidth,
       dHeight
     );
+  }
+  chromaKey(image, color, quality=1) {
+    /*
+    processor.computeFrame = function () {
+      this.ctx1.drawImage(this.video, 0, 0, this.width, this.height);
+      const frame = this.ctx1.getImageData(0, 0, this.width, this.height);
+      const data = frame.data;
+    
+      for (let i = 0; i < data.length; i += 4) {
+        const red = data[i + 0];
+        const green = data[i + 1];
+        const blue = data[i + 2];
+        if (green > 100 && red > 100 && blue < 43) {
+          data[i + 3] = 0;
+        }
+      }
+      this.ctx2.putImageData(frame, 0, 0);
+    };
+    */
+    this.chromaCanvas.width = image.naturalWidth*quality;
+    this.chromaCanvas.height = image.naturalHeight*quality;
+    if (image.naturalWidth == 0 || image.naturalHeight == 0) {
+      this.chromaCanvas.width = image.width*quality;
+      this.chromaCanvas.height = image.height*quality;
+    }
+    this.chromaGraphics.drawImage(image,0,0,this.chromaCanvas.width,this.chromaCanvas.height);
+    const frame = this.chromaGraphics.getImageData(0, 0, this.chromaCanvas.width, this.chromaCanvas.height);
+    const data = frame.data;
+    //ここから描くこと！！！！！！！！
   }
 }
 ///////////////////////////
