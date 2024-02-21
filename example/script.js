@@ -476,7 +476,7 @@ let count = 0;
 console.log(InfinityGraphics.getColorDistance(rgb(0,0,0),rgb(255,255,255)));
 function drawingProcess() {
   InfinityGraphics.start();
-  document.querySelector("h1").innerHTML = InfinityGraphics.FPS;
+  document.querySelector("h1").innerHTML = Math.floor(InfinityGraphics.FPS*100)/100;
   count += InfinityGraphics.Dt;
   count%=1;
   InfinityGraphics.rect(100*count, 0, 100, 100, (fill = "red"));
