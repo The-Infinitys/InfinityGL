@@ -2,6 +2,8 @@
 ## What is InfinityGL?
 InfinityGLは、The Infinitysが開発した、JavaScriptでの描画を高速かつ簡便かつ便利なものにするライブラリ(というよりはClass)です。
 描画する際に、画面の大きさについて一切気にせずに描画をすることができるようになります。
+使用例はこちら<br>
+https://the-infinitys.github.io/InfinityGL/example
 ## 主な使い方
 このようなコードを用いて、InfinityGLを初期化します。
 ```javascript
