@@ -20,7 +20,9 @@ class InfinityGL {
     }
   }
   start() {
-    this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.canvas
+      .getContext("2d")
+      .clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.graphics.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.Dt = (Date.now() - this.lastDrawed) / 1000;
     this.FPS = 1 / this.Dt;
@@ -379,7 +381,7 @@ class InfinityGL {
     }
   }
   //画像の描画系統
-  image(image, x, y, width, height) {
+  image(image, x, y, width, height, direction) {
     let pos = this.convertPos(x, y);
     width = this.convertLength(width);
     height = this.convertLength(height);
@@ -389,31 +391,6 @@ class InfinityGL {
       pos.y - height / 2,
       width,
       height
-    );
-  }
-  drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-    sx += image.naturalWidth / 2;
-    sy = image.naturalHeight / 2 - sy;
-    if (image.naturalWidth == 0 || image.naturalHeight == 0) {
-      sx += image.width / 2;
-      sy = image.height / 2 - sy;
-    }
-
-    let dpos = this.convertPos(dx, dy);
-    dWidth = this.convertLength(dWidth);
-    dHeight = this.convertLength(dHeight);
-    dpos.x -= dWidth / 2;
-    dpos.y -= dHeight / 2;
-    this.graphics.drawImage(
-      image,
-      sx,
-      sy,
-      sWidth,
-      sHeight,
-      dpos.x,
-      dpos.y,
-      dWidth,
-      dHeight
     );
   }
   chromaKey(image, color, chromaLevel = 0, quality = 1) {
@@ -445,177 +422,22 @@ class InfinityGL {
       };
       if (this.getColorDistance(rgb, color) >= chromaLevel) {
         frame.data[i + 1] = 0;
-      }else{
+      } else {
         frame.data[i + 2] = 255;
       }
     }
-    this.chromaGraphics.clearRect(0,0,this.chromaCanvas.width,this.chromaCanvas.height);
+    this.chromaGraphics.clearRect(
+      0,
+      0,
+      this.chromaCanvas.width,
+      this.chromaCanvas.height
+    );
     this.chromaGraphics.putImageData(frame, 0, 0);
     return this.chromaCanvas;
   }
 }
 ///////////////////////////
-//animation class
-// イージングクラス
-class Easing {
-  // コンストラクタ
-  // レベルの初期値を100に設定
-  constructor(level = 100) {
-    this.level = level;
-  }
 
-  /**
-   * ベジェ曲線上の点の座標を計算する関数
-   *
-   * @param {number} t - 曲線上の位置を表すパラメータ。0から1までの値を取る。
-   * @param {number} x1 ,y1, x2, y2, x3, y3, x4, y4 - ベジェ曲線を定義する４つの制御点の座標。
-   * @returns {{x: number, y: number}} - 曲線上の点のx座標とy座標を格納したオブジェクト。
-   */
-  bezierCurve(t, x1, y1, x2, y2, x3, y3, x4, y4) {
-    // 1 - t を計算
-    const oneMinusT = 1 - t;
-    // 曲線上の点の座標を計算
-    return {
-      x:
-        x1 * Math.pow(oneMinusT, 3) +
-        3 * x2 * t * Math.pow(oneMinusT, 2) +
-        3 * x3 * Math.pow(t, 2) * oneMinusT +
-        x4 * Math.pow(t, 3),
-      y:
-        y1 * Math.pow(oneMinusT, 3) +
-        3 * y2 * t * Math.pow(oneMinusT, 2) +
-        3 * y3 * Math.pow(t, 2) * oneMinusT +
-        y4 * Math.pow(t, 3),
-    };
-  }
-
-  /**
-   * リニア関数
-   *
-   * @param {number} x - イージングの対象となる値。0から1までの値を取る。
-   * @returns {number} - イージング後の値。
-   */
-  linear(x) {
-    x = Math.max(0, x);
-    x = Math.min(x, 1);
-    return x;
-  }
-
-  /**
-   * ステップ関数
-   *
-   * @param {number} x - イージングの対象となる値。0から1までの値を取る。
-   * @param {number} level - イージングのパラメーター。0から1までの値を取る。
-   * @returns {number} - イージング後の値。
-   */
-  step(x, level) {
-    x = Math.max(0, x);
-    x = Math.min(x, 1);
-    level = Math.max(0, level);
-    level = Math.min(level, 1);
-    if (x < level) return 0;
-    return 1;
-  }
-  /**
-   * イージングイン関数
-   *
-   * @param {number} x - イージングの対象となる値。0から1までの値を取る。
-   * @param {number} level - イージングの強さを表すレベル。0から1までの値を取る。
-   * @returns {number} - イージング後の値。
-   */
-  in(x, level) {
-    // レベルの範囲を0から1に制限
-    level = Math.max(0, level);
-    level = Math.min(level, 1);
-    // xの範囲を0から1に制限
-    x = Math.max(0, x);
-    x = Math.min(x, 1);
-    // ベジェ曲線上の点を求める
-    let result;
-    //二分探索用の変数の作成
-    let min = 0;
-    let max = 1;
-    // レベル分のループ
-    for (let i = 0; i < this.level; ++i) {
-      let mid = (min + max) / 2;
-      result = this.bezierCurve(mid, 0, 0, level, 0, 1, 1 - level, 1, 1);
-      // 二分探索の実行
-      if (result.x > x) {
-        max = mid;
-      } else {
-        min = mid;
-      }
-    }
-    // xが曲線より右側にある場合は1を返す
-    return result.y;
-  }
-
-  /**
-   * イージングアウト関数
-   *
-   * @param {number} x - イージングの対象となる値。0から1までの値を取る。
-   * @param {number} level - イージングの強さを表すレベル。0から1までの値を取る。
-   * @returns {number} - イージング後の値。
-   */
-  out(x, level) {
-    // レベルの範囲を0から1に制限
-    level = Math.max(0, level);
-    level = Math.min(level, 1);
-    // xの範囲を0から1に制限
-    x = Math.max(0, x);
-    x = Math.min(x, 1);
-    //二分探索用の変数の作成
-    let result;
-    let min = 0;
-    let max = 1;
-    // レベル分のループ
-    for (let i = 0; i < this.level; ++i) {
-      let mid = (min + max) / 2;
-      result = this.bezierCurve(mid, 0, 0, 0, level, 1 - level, 1, 1, 1);
-      // 二分探索の実行
-      if (result.x > x) {
-        max = mid;
-      } else {
-        min = mid;
-      }
-    }
-    // xが曲線より右側にある場合は1を返す
-    return result.y;
-  }
-
-  /**
-   * イージングインアウト関数
-   *
-   * @param {number} x - イージングの対象となる値。0から1までの値を取る。
-   * @param {number} level - イージングの強さを表すレベル。0から1までの値を取る。
-   * @returns {number} - イージング後の値。
-   */
-  inout(x, level) {
-    // レベルの範囲を0から1に制限
-    level = Math.max(0, level);
-    level = Math.min(level, 1);
-    // xの範囲を0から1に制限
-    x = Math.max(0, x);
-    x = Math.min(x, 1);
-    //二分探索用の変数の作成
-    let result;
-    let min = 0;
-    let max = 1;
-    // レベル分のループ
-    for (let i = 0; i < this.level; ++i) {
-      let mid = (min + max) / 2;
-      result = this.bezierCurve(mid, 0, 0, level, 0, 1 - level, 1, 1, 1);
-      // 二分探索の実行
-      if (result.x > x) {
-        max = mid;
-      } else {
-        min = mid;
-      }
-    }
-    // xが曲線より右側にある場合は1を返す
-    return result.y;
-  }
-}
 function makeRandomColor() {
   base16 = "0123456789abcdef";
   result = "#";
@@ -624,8 +446,8 @@ function makeRandomColor() {
   }
   return result;
 }
-function rgb(r,g,b){
-  return {r:r,g:g,b:b};
+function rgb(r, g, b) {
+  return { r: r, g: g, b: b };
 }
 
 const canva = document.getElementById("screen");
@@ -633,12 +455,12 @@ canva.width = "480";
 canva.height = "360";
 let InfinityGraphics = new InfinityGL(canva);
 let count = 0;
-let animation=new animationData();
 function drawingProcess() {
   InfinityGraphics.start();
-  count+=1;
-  document.querySelector("h1").innerHTML = Math.floor(InfinityGraphics.FPS*100)/100;
-  
+  count += 1;
+  document.querySelector("h1").innerHTML =
+    Math.floor(InfinityGraphics.FPS * 100) / 100;
+
   InfinityGraphics.end();
 }
 InfinityGraphics.setDrawingProcess(drawingProcess);
