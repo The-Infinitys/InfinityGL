@@ -460,7 +460,7 @@ function drawingProcess() {
   count += 1;
   document.querySelector("h1").innerHTML =
     Math.floor(InfinityGraphics.FPS * 100) / 100;
-
+  InfinityGraphics.rect(0,0,100,100,fill="red");
   InfinityGraphics.end();
 }
 InfinityGraphics.setDrawingProcess(drawingProcess);
