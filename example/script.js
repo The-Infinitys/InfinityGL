@@ -27,6 +27,9 @@ class InfinityGL {
     this.Dt = (Date.now() - this.lastDrawed) / 1000;
     this.FPS = 1 / this.Dt;
   }
+  clear() {
+    this.graphics.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
   end() {
     this.canvas
       .getContext("2d")
@@ -381,10 +384,16 @@ class InfinityGL {
     }
   }
   //画像の描画系統
-  image(image, x, y, width, height, direction) {
+  drawImg(image, x, y, size) {
     let pos = this.convertPos(x, y);
-    width = this.convertLength(width);
-    height = this.convertLength(height);
+    let width, height;
+    if (image.tagName == "CANVAS") {
+      width = this.convertLength(image.width * size);
+      height = this.convertLength(image.height * size);
+    } else {
+      width = this.convertLength(image.naturalWidthwidth * size);
+      height = this.convertLength(image.naturalHeight * size);
+    }
     this.graphics.drawImage(
       image,
       pos.x - width / 2,
@@ -392,6 +401,11 @@ class InfinityGL {
       width,
       height
     );
+  }
+  canvas_to_img(canvas) {
+    let img = new Image();
+    img.src = canvas.toDataURL();
+    return img;
   }
   chromaKey(image, color, chromaLevel = 0, quality = 1) {
     if (image.tagName == "CANVAS") {
@@ -433,7 +447,9 @@ class InfinityGL {
       this.chromaCanvas.height
     );
     this.chromaGraphics.putImageData(frame, 0, 0);
-    return this.chromaCanvas;
+    let result = new Image();
+    result.src = this.chromaCanvas.toDataURL();
+    return result;
   }
 }
 ///////////////////////////
@@ -460,7 +476,12 @@ function drawingProcess() {
   count += 1;
   document.querySelector("h1").innerHTML =
     Math.floor(InfinityGraphics.FPS * 100) / 100;
-  InfinityGraphics.rect(0,0,100,100,fill="red");
+  InfinityGraphics.rect(-50, 0, 100, 100, (fill = "red"));
+  InfinityGraphics.rect(50, 0, 100, 100, (fill = "green"));
+  let img = InfinityGraphics.buffer;
+  //img = InfinityGraphics.canvas_to_img(img);
+  //InfinityGraphics.clear();
+  //InfinityGraphics.drawImg(img,0,count,1000,1000);
   InfinityGraphics.end();
 }
 InfinityGraphics.setDrawingProcess(drawingProcess);
