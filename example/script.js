@@ -384,16 +384,11 @@ class InfinityGL {
     }
   }
   //画像の描画系統
-  drawImg(image, x, y, size) {
+  img(image, x, y, size) {
     let pos = this.convertPos(x, y);
     let width, height;
-    if (image.tagName == "CANVAS") {
-      width = this.convertLength(image.width * size);
-      height = this.convertLength(image.height * size);
-    } else {
-      width = this.convertLength(image.naturalWidthwidth * size);
-      height = this.convertLength(image.naturalHeight * size);
-    }
+    width = this.convertLength(image.width * size);
+    height = this.convertLength(image.height * size);
     this.graphics.drawImage(
       image,
       pos.x - width / 2,
@@ -401,55 +396,6 @@ class InfinityGL {
       width,
       height
     );
-  }
-  canvas_to_img(canvas) {
-    let img = new Image();
-    img.src = canvas.toDataURL();
-    return img;
-  }
-  chromaKey(image, color, chromaLevel = 0, quality = 1) {
-    if (image.tagName == "CANVAS") {
-      this.chromaCanvas.width = image.width * quality;
-      this.chromaCanvas.height = image.height * quality;
-    } else {
-      this.chromaCanvas.width = image.naturalWidth * quality;
-      this.chromaCanvas.height = image.naturalHeight * quality;
-    }
-    this.chromaGraphics.drawImage(
-      image,
-      0,
-      0,
-      this.canvas.width,
-      this.chromaCanvas.height
-    );
-    const frame = this.chromaGraphics.getImageData(
-      0,
-      0,
-      this.chromaCanvas.width,
-      this.chromaCanvas.height
-    );
-    for (let i = 0; i < frame.data.length; i += 4) {
-      const rgb = {
-        r: frame.data[i],
-        g: frame.data[i + 1],
-        b: frame.data[i + 2],
-      };
-      if (this.getColorDistance(rgb, color) >= chromaLevel) {
-        frame.data[i + 1] = 0;
-      } else {
-        frame.data[i + 2] = 255;
-      }
-    }
-    this.chromaGraphics.clearRect(
-      0,
-      0,
-      this.chromaCanvas.width,
-      this.chromaCanvas.height
-    );
-    this.chromaGraphics.putImageData(frame, 0, 0);
-    let result = new Image();
-    result.src = this.chromaCanvas.toDataURL();
-    return result;
   }
 }
 ///////////////////////////
@@ -479,9 +425,7 @@ function drawingProcess() {
   InfinityGraphics.rect(-50, 0, 100, 100, (fill = "red"));
   InfinityGraphics.rect(50, 0, 100, 100, (fill = "green"));
   let img = InfinityGraphics.buffer;
-  //img = InfinityGraphics.canvas_to_img(img);
-  //InfinityGraphics.clear();
-  //InfinityGraphics.drawImg(img,0,count,1000,1000);
+  InfinityGraphics.img(img, 100, 2 * count%100, 0.1);
   InfinityGraphics.end();
 }
 InfinityGraphics.setDrawingProcess(drawingProcess);

@@ -37,6 +37,5 @@ InfinityGraphics.closePath()//pathを閉じる
 InfinityGraphics.line(x1, y1, x2, y2, color = "black", width = 1)//線を描画する。
 InfinityGraphics.polygon(x1, y1, x2, y2, x3, y3, fill = null, stroke = { color: null, width: null })//三角形を描画する。
 InfinityGraphics.rect(x,y,width,height,fill = null,stroke = { color: null, width: null })//長方形を描画する。
-InfinityGraphics.image(image, x, y, width, height)//画像を描画する。(サイズ可変)
-InfinityGraphics.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)//画像を描画する。(サイズ・切り取り領域可変)
+InfinityGraphics.img(image, x, y, size)//画像を描画する。(サイズは1で100%を表す。)
 ```

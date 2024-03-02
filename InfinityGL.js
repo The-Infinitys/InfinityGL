@@ -4,6 +4,8 @@ class InfinityGL {
       this.canvas = canvas; //canvasオブジェクト。横幅等の取得に使用する。
       this.buffer = new OffscreenCanvas(this.canvas.width, this.canvas.height);
       this.graphics = this.buffer.getContext("2d"); //描画コンテクスト。描画に使用する。
+      this.chromaCanvas = new OffscreenCanvas(300, 100); //chroma key用のcanvas
+      this.chromaGraphics = this.chromaCanvas.getContext("2d"); //chroma key 用の描画機構。高速化の為、座標変換をせずにdirectにする。
       this.aspect_ratio = canvas.width / canvas.height; //アスペクト比は、横幅÷縦幅で表す。
       this.FrameRate = FrameRate; //この値は最高のFPSを指定する。24はアニメ等に向いており、30はバランスが取れている。60はゲーム向き。(規定値でないと、setIntervalを使い出す)
       this.FPS = Infinity; //FPSを入れておく
@@ -16,9 +18,15 @@ class InfinityGL {
     }
   }
   start() {
+    this.canvas
+      .getContext("2d")
+      .clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.graphics.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.Dt = (Date.now() - this.lastDrawed) / 1000;
     this.FPS = 1 / this.Dt;
+  }
+  clear() {
+    this.graphics.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
   end() {
     this.canvas
@@ -79,6 +87,48 @@ class InfinityGL {
       x: (Math.random() - 0.5) * this.canvas.width,
       y: (Math.random() - 0.5) * this.canvas.height,
     };
+  }
+  getColorDistance(rgb1, rgb2) {
+    // 三次元空間の距離が返る
+    return Math.sqrt(
+      Math.pow(rgb1.r - rgb2.r, 2) +
+        Math.pow(rgb1.g - rgb2.g, 2) +
+        Math.pow(rgb1.b - rgb2.b, 2)
+    );
+  }
+  rgb2hsv(r, g, b) {
+    r = r / 255;
+    g = g / 255;
+    b = b / 255;
+
+    let max = Math.max(r, g, b);
+    let min = Math.min(r, g, b);
+    let diff = max - min;
+
+    let h = 0;
+
+    switch (min) {
+      case max:
+        h = 0;
+        break;
+
+      case r:
+        h = 60 * ((b - g) / diff) + 180;
+        break;
+
+      case g:
+        h = 60 * ((r - b) / diff) + 300;
+        break;
+
+      case b:
+        h = 60 * ((g - r) / diff) + 60;
+        break;
+    }
+
+    let s = max == 0 ? 0 : diff / max;
+    let v = max;
+
+    return [h, s, v];
   }
   //明度、彩度は0以上100以下の数値で指定すること。
   hsva(hue, saturation, value, alpha) {
@@ -332,42 +382,17 @@ class InfinityGL {
     }
   }
   //画像の描画系統
-  image(image, x, y, width, height) {
+  img(image, x, y, size) {
     let pos = this.convertPos(x, y);
-    width = this.convertLength(width);
-    height = this.convertLength(height);
+    let width, height;
+    width = this.convertLength(image.width * size);
+    height = this.convertLength(image.height * size);
     this.graphics.drawImage(
       image,
       pos.x - width / 2,
       pos.y - height / 2,
       width,
       height
-    );
-  }
-  drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-    if (image.tagName == "IMG") {
-      sx += image.naturalWidth / 2;
-      sy = image.naturalHeight / 2 - sy;
-    } else if (image.tagName == "CANVAS") {
-      sx += image.width / 2;
-      sy = image.height / 2 - sy;
-    }
-
-    let dpos = this.convertPos(dx, dy);
-    dWidth = this.convertLength(dWidth);
-    dHeight = this.convertLength(dHeight);
-    dpos.x -= dWidth / 2;
-    dpos.y -= dHeight / 2;
-    this.graphics.drawImage(
-      image,
-      sx,
-      sy,
-      sWidth,
-      sHeight,
-      dpos.x,
-      dpos.y,
-      dWidth,
-      dHeight
     );
   }
 }
