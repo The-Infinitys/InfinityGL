@@ -413,11 +413,11 @@ class InfinityGL {
       this.backCanvas.height / 2
     );
     direction %= 360;
-    this.backGraphics.rotate((direction * Math.PI) / 180);
+    this.backGraphics.rotate(((direction * Math.PI) / 180) % (2 * Math.PI));
     this.backGraphics.drawImage(img, img.width / -2, img.height / -2);
     const result = new Image();
-    result.src = this.backCanvas.toDataURL();
     this.backGraphics.setTransform(1, 0, 0, 1, 0, 0);
+    result.src = this.backCanvas.toDataURL();
     return result;
   }
   resizeImg(img, persentage) {
@@ -460,11 +460,8 @@ canva.width = "480";
 canva.height = "360";
 let InfinityGraphics = new InfinityGL(canva);
 let count = 0;
-let img = new Image();
-img.src =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Scratchlogo.svg/1920px-Scratchlogo.svg.png";
-img.crossOrigin = "anonymous";
-img=InfinityGraphics.resizeImg(img,0.1);
+let img = document.querySelector("img");
+img = InfinityGraphics.resizeImg(img, 0.05);
 function drawingProcess() {
   InfinityGraphics.start();
   count += 1;
@@ -476,7 +473,7 @@ function drawingProcess() {
     InfinityGraphics.rotateImg(img, count),
     100,
     (100 * Math.sin(count / 10)) % 100,
-    1
+    2
   );
   InfinityGraphics.end();
 }
