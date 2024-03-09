@@ -6,8 +6,8 @@ class InfinityGL {
       this.canvas = canvas; //canvasオブジェクト。横幅等の取得に使用する。
       this.buffer = new OffscreenCanvas(this.canvas.width, this.canvas.height);
       this.graphics = this.buffer.getContext("2d"); //描画コンテクスト。描画に使用する。
-      this.backCanvas = new OffscreenCanvas(300, 100); //chroma key用のcanvas
-      this.backGraphics = this.backCanvas.getContext("2d"); //chroma key 用の描画機構。高速化の為、座標変換をせずにdirectにする。
+      this.backCanvas = document.createElement("canvas"); //画像処理用のcanvas
+      this.backGraphics = this.backCanvas.getContext("2d"); //画像処理用の描画機構。高速化の為、座標変換をせずにdirectにする。
       this.aspect_ratio = canvas.width / canvas.height; //アスペクト比は、横幅÷縦幅で表す。
       this.FrameRate = FrameRate; //この値は最高のFPSを指定する。24はアニメ等に向いており、30はバランスが取れている。60はゲーム向き。(規定値でないと、setIntervalを使い出す)
       this.FPS = Infinity; //FPSを入れておく
@@ -398,21 +398,22 @@ class InfinityGL {
     );
   }
   rotateImg(img, direction) {
-    console.log();
-    this.backCanvas.width = Math.sqrt(img.width + img.height);
-    this.backCanvas.height = Math.sqrt(img.width + img.height);
+    this.backCanvas.width = Math.sqrt(img.width**2 + img.height**2);
+    this.backCanvas.height = Math.sqrt(img.width**2 + img.height**2);
     this.backGraphics.clearRect(
       0,
       0,
       this.backCanvas.width,
       this.backCanvas.height
     );
+    
     this.backGraphics.translate(
       this.backCanvas.width / 2,
       this.backCanvas.height / 2
     );
-    this.backGraphics.drawImage(img, img.width / -2, img.height / -2);
+    direction%=360;
     this.backGraphics.rotate((direction * Math.PI) / 180);
+    this.backGraphics.drawImage(img, img.width / -2, img.height / -2);
     let result=new Image();
     result.src=this.backCanvas.toDataURL();
     return result;
@@ -445,7 +446,8 @@ function drawingProcess() {
   InfinityGraphics.rect(-50, 0, 100, 100, (fill = "red"));
   InfinityGraphics.rect(50, 0, 100, 100, (fill = "green"));
   let img = InfinityGraphics.buffer;
-  InfinityGraphics.img(img, 100, (2 * count) % 100, 0.1);
+  img=InfinityGraphics.rotateImg(img,(2 * count) % 360);
+  InfinityGraphics.img(img, 100, 100*Math.sin(count/10) % 100, 1);
   InfinityGraphics.end();
 }
 InfinityGraphics.setDrawingProcess(drawingProcess);
