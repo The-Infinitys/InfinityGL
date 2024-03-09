@@ -398,24 +398,46 @@ class InfinityGL {
     );
   }
   rotateImg(img, direction) {
-    this.backCanvas.width = Math.sqrt(img.width**2 + img.height**2);
-    this.backCanvas.height = Math.sqrt(img.width**2 + img.height**2);
+    const canvasize = Math.sqrt(img.width ** 2 + img.height ** 2);
+    this.backCanvas.width = canvasize;
+    this.backCanvas.height = canvasize;
     this.backGraphics.clearRect(
       0,
       0,
       this.backCanvas.width,
       this.backCanvas.height
     );
-    
+    this.backGraphics.setTransform(1, 0, 0, 1, 0, 0);
     this.backGraphics.translate(
       this.backCanvas.width / 2,
       this.backCanvas.height / 2
     );
-    direction%=360;
+    direction %= 360;
     this.backGraphics.rotate((direction * Math.PI) / 180);
     this.backGraphics.drawImage(img, img.width / -2, img.height / -2);
-    let result=new Image();
-    result.src=this.backCanvas.toDataURL();
+    const result = new Image();
+    result.src = this.backCanvas.toDataURL();
+    this.backGraphics.setTransform(1, 0, 0, 1, 0, 0);
+    return result;
+  }
+  resizeImg(img, persentage) {
+    this.backCanvas.width = img.width * persentage;
+    this.backCanvas.height = img.height * persentage;
+    this.backGraphics.clearRect(
+      0,
+      0,
+      this.backCanvas.width,
+      this.backCanvas.height
+    );
+    this.backGraphics.drawImage(
+      img,
+      0,
+      0,
+      img.width * persentage,
+      img.height * persentage
+    );
+    const result = new Image();
+    result.src = this.backCanvas.toDataURL();
     return result;
   }
 }
@@ -438,6 +460,11 @@ canva.width = "480";
 canva.height = "360";
 let InfinityGraphics = new InfinityGL(canva);
 let count = 0;
+let img = new Image();
+img.src =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Scratchlogo.svg/1920px-Scratchlogo.svg.png";
+img.crossOrigin = "anonymous";
+img=InfinityGraphics.resizeImg(img,0.1);
 function drawingProcess() {
   InfinityGraphics.start();
   count += 1;
@@ -445,9 +472,12 @@ function drawingProcess() {
     Math.floor(InfinityGraphics.FPS * 100) / 100;
   InfinityGraphics.rect(-50, 0, 100, 100, (fill = "red"));
   InfinityGraphics.rect(50, 0, 100, 100, (fill = "green"));
-  let img = InfinityGraphics.buffer;
-  img=InfinityGraphics.rotateImg(img,(2 * count) % 360);
-  InfinityGraphics.img(img, 100, 100*Math.sin(count/10) % 100, 1);
+  InfinityGraphics.img(
+    InfinityGraphics.rotateImg(img, count),
+    100,
+    (100 * Math.sin(count / 10)) % 100,
+    1
+  );
   InfinityGraphics.end();
 }
 InfinityGraphics.setDrawingProcess(drawingProcess);
