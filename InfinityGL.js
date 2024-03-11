@@ -4,8 +4,8 @@ class InfinityGL {
       this.canvas = canvas; //canvasオブジェクト。横幅等の取得に使用する。
       this.buffer = new OffscreenCanvas(this.canvas.width, this.canvas.height);
       this.graphics = this.buffer.getContext("2d"); //描画コンテクスト。描画に使用する。
-      this.chromaCanvas = new OffscreenCanvas(300, 100); //chroma key用のcanvas
-      this.chromaGraphics = this.chromaCanvas.getContext("2d"); //chroma key 用の描画機構。高速化の為、座標変換をせずにdirectにする。
+      this.backCanvas = document.createElement("canvas"); //画像処理用のcanvas
+      this.backGraphics = this.backCanvas.getContext("2d"); //画像処理用の描画機構。高速化の為、座標変換をせずにdirectにする。
       this.aspect_ratio = canvas.width / canvas.height; //アスペクト比は、横幅÷縦幅で表す。
       this.FrameRate = FrameRate; //この値は最高のFPSを指定する。24はアニメ等に向いており、30はバランスが取れている。60はゲーム向き。(規定値でないと、setIntervalを使い出す)
       this.FPS = Infinity; //FPSを入れておく
@@ -394,5 +394,48 @@ class InfinityGL {
       width,
       height
     );
+  }
+  rotateImg(img, direction) {
+    const canvasize = Math.sqrt(img.width ** 2 + img.height ** 2);
+    this.backCanvas.width = canvasize;
+    this.backCanvas.height = canvasize;
+    this.backGraphics.clearRect(
+      0,
+      0,
+      this.backCanvas.width,
+      this.backCanvas.height
+    );
+    this.backGraphics.setTransform(1, 0, 0, 1, 0, 0);
+    this.backGraphics.translate(
+      this.backCanvas.width / 2,
+      this.backCanvas.height / 2
+    );
+    direction %= 360;
+    this.backGraphics.rotate(((direction * Math.PI) / 180) % (2 * Math.PI));
+    this.backGraphics.drawImage(img, img.width / -2, img.height / -2);
+    const result = new Image();
+    this.backGraphics.setTransform(1, 0, 0, 1, 0, 0);
+    result.src = this.backCanvas.toDataURL();
+    return result;
+  }
+  resizeImg(img, persentage) {
+    this.backCanvas.width = img.width * persentage;
+    this.backCanvas.height = img.height * persentage;
+    this.backGraphics.clearRect(
+      0,
+      0,
+      this.backCanvas.width,
+      this.backCanvas.height
+    );
+    this.backGraphics.drawImage(
+      img,
+      0,
+      0,
+      img.width * persentage,
+      img.height * persentage
+    );
+    const result = new Image();
+    result.src = this.backCanvas.toDataURL();
+    return result;
   }
 }
